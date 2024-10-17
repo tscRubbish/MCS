@@ -1,0 +1,13 @@
+MODEL SIZE=2,TERM DEPTH=1,VAL SIZE=2,DEF SIZE=1;
+x,y;
+f(2);
+#CONSTANT SIZE=2;
+a,b;
+ASSIGN SIZE=2;
+f(a,b)=a;f(a,a)=b;
+#CONSTANT SIZE=2;
+a,b;
+ASSIGN SIZE=2;
+f(a,a)=a;f(b,b)=b;
+.
+

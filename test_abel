@@ -1,0 +1,24 @@
+MODEL SIZE=3,TERM DEPTH=2,VAL SIZE=3,DEF SIZE=2;
+x,y,z;
+f(2),inv(1);
+#CONSTANT SIZE=3;
+a,b,c;
+ASSIGN SIZE=12;
+f(a,b)=b;f(b,a)=b;
+f(a,c)=c;f(c,a)=c;
+f(a,a)=a;f(b,b)=c;f(c,c)=b;
+f(b,c)=a;f(c,b)=a;
+inv(a)=a;inv(c)=b;inv(b)=c;
+#CONSTANT SIZE=2;
+a,b;
+ASSIGN SIZE=6;
+f(a,b)=a;f(b,a)=a;
+f(a,a)=b;f(b,b)=b;
+inv(a)=a;inv(b)=b;
+#CONSTANT SIZE=2;
+a,b;
+ASSIGN SIZE=6;
+f(a,b)=b;f(b,a)=b;
+f(a,a)=a;f(b,b)=a;
+inv(a)=a;inv(b)=b;
+.

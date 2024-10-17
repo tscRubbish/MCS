@@ -1,0 +1,12 @@
+MODEL SIZE=1,TERM DEPTH=3,VAL SIZE=3,DEF SIZE=2;
+x,y,z;
+mul(2),add(2);
+#CONSTANT SIZE=7;
+a,b,c,d,e,f,g;
+ASSIGN SIZE=10;
+add(a,b)=d;add(b,a)=d;
+mul(a,c)=e;mul(c,a)=e;
+mul(b,c)=f;mul(c,b)=f;
+add(e,f)=g;add(f,e)=g;
+mul(d,c)=g;mul(c,d)=g;
+.
