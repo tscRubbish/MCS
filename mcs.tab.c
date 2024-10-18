@@ -75,6 +75,8 @@
 #include <string.h>
 #include <malloc.h>
 #include "mcs_def.h"
+#include <vector>
+
 int yylex(void);
 void yyerror(char *); 
 extern int yylineno;
@@ -93,15 +95,22 @@ int cur_def=0;
 int _i,_j,len;
 int para_size=0;
 char* fname;
-//PARAIDXLIST pil;
 int para_idx_tmp[MAX_N_PARA];
 int mp[MAX_N_DEF];
 
-//int* constant_id;
-//int* id_constant;
+bool createDef;
+
+void initNewModel();
+int getDefByName(char *s);
+int getNameLength(char *s);
+void printModel();
+void printAssign();
+void generateTerm();
+void generateFormula();
 
 
-#line 105 "mcs.tab.c"
+
+#line 114 "mcs.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -132,46 +141,26 @@ enum yysymbol_kind_t
   YYSYMBOL_YYEOF = 0,                      /* "end of file"  */
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
-  YYSYMBOL_ModelSize = 3,                  /* ModelSize  */
-  YYSYMBOL_TermDepth = 4,                  /* TermDepth  */
-  YYSYMBOL_ValSize = 5,                    /* ValSize  */
-  YYSYMBOL_DefSize = 6,                    /* DefSize  */
-  YYSYMBOL_ConstantSize = 7,               /* ConstantSize  */
-  YYSYMBOL_AssignSize = 8,                 /* AssignSize  */
-  YYSYMBOL_ModelSplit = 9,                 /* ModelSplit  */
-  YYSYMBOL_LFun = 10,                      /* LFun  */
-  YYSYMBOL_RFun = 11,                      /* RFun  */
-  YYSYMBOL_EQ = 12,                        /* EQ  */
-  YYSYMBOL_STR = 13,                       /* STR  */
-  YYSYMBOL_INT_NUMBER = 14,                /* INT_NUMBER  */
-  YYSYMBOL_Split = 15,                     /* Split  */
-  YYSYMBOL_DefSplit = 16,                  /* DefSplit  */
-  YYSYMBOL_End = 17,                       /* End  */
-  YYSYMBOL_ResSplit = 18,                  /* ResSplit  */
-  YYSYMBOL_YYACCEPT = 19,                  /* $accept  */
-  YYSYMBOL_MCS = 20,                       /* MCS  */
-  YYSYMBOL_21_1 = 21,                      /* $@1  */
-  YYSYMBOL_22_2 = 22,                      /* $@2  */
-  YYSYMBOL_23_3 = 23,                      /* $@3  */
-  YYSYMBOL_24_4 = 24,                      /* $@4  */
-  YYSYMBOL_val_list = 25,                  /* val_list  */
-  YYSYMBOL_def_list = 26,                  /* def_list  */
-  YYSYMBOL_def = 27,                       /* def  */
-  YYSYMBOL_28_5 = 28,                      /* $@5  */
-  YYSYMBOL_29_6 = 29,                      /* $@6  */
-  YYSYMBOL_model_list = 30,                /* model_list  */
-  YYSYMBOL_31_7 = 31,                      /* $@7  */
-  YYSYMBOL_32_8 = 32,                      /* $@8  */
-  YYSYMBOL_model = 33,                     /* model  */
-  YYSYMBOL_34_9 = 34,                      /* $@9  */
-  YYSYMBOL_35_10 = 35,                     /* $@10  */
-  YYSYMBOL_constant_list = 36,             /* constant_list  */
-  YYSYMBOL_res_list = 37,                  /* res_list  */
-  YYSYMBOL_38_11 = 38,                     /* $@11  */
-  YYSYMBOL_res = 39,                       /* res  */
-  YYSYMBOL_fun = 40,                       /* fun  */
-  YYSYMBOL_41_12 = 41,                     /* $@12  */
-  YYSYMBOL_para_list = 42                  /* para_list  */
+  YYSYMBOL_LP = 3,                         /* LP  */
+  YYSYMBOL_RP = 4,                         /* RP  */
+  YYSYMBOL_EQ = 5,                         /* EQ  */
+  YYSYMBOL_Split = 6,                      /* Split  */
+  YYSYMBOL_Annotate = 7,                   /* Annotate  */
+  YYSYMBOL_END = 8,                        /* END  */
+  YYSYMBOL_STR = 9,                        /* STR  */
+  YYSYMBOL_SP_STR = 10,                    /* SP_STR  */
+  YYSYMBOL_INT = 11,                       /* INT  */
+  YYSYMBOL_YYACCEPT = 12,                  /* $accept  */
+  YYSYMBOL_MCS = 13,                       /* MCS  */
+  YYSYMBOL_Model_List = 14,                /* Model_List  */
+  YYSYMBOL_Model = 15,                     /* Model  */
+  YYSYMBOL_16_1 = 16,                      /* $@1  */
+  YYSYMBOL_17_2 = 17,                      /* $@2  */
+  YYSYMBOL_Res_List = 18,                  /* Res_List  */
+  YYSYMBOL_Res = 19,                       /* Res  */
+  YYSYMBOL_20_3 = 20,                      /* $@3  */
+  YYSYMBOL_21_4 = 21,                      /* $@4  */
+  YYSYMBOL_Para_List = 22                  /* Para_List  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -497,21 +486,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  4
+#define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   54
+#define YYLAST   55
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  19
+#define YYNTOKENS  12
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  24
+#define YYNNTS  11
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  35
+#define YYNRULES  16
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  76
+#define YYNSTATES  46
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   273
+#define YYMAXUTOK   266
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -551,18 +540,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-       5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18
+       5,     6,     7,     8,     9,    10,    11
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_int16 yyrline[] =
+static const yytype_uint8 yyrline[] =
 {
-       0,    65,    65,    70,    76,    82,    64,    93,   103,   114,
-     115,   117,   122,   117,   138,   140,   145,   139,   153,   159,
-     152,   166,   175,   184,   193,   203,   203,   208,   211,   231,
-     258,   257,   285,   307,   329,   350
+       0,    66,    66,    71,    76,    83,    91,    83,    96,    97,
+     100,    99,   139,   138,   173,   199,   204
 };
 #endif
 
@@ -578,13 +564,10 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"", "ModelSize",
-  "TermDepth", "ValSize", "DefSize", "ConstantSize", "AssignSize",
-  "ModelSplit", "LFun", "RFun", "EQ", "STR", "INT_NUMBER", "Split",
-  "DefSplit", "End", "ResSplit", "$accept", "MCS", "$@1", "$@2", "$@3",
-  "$@4", "val_list", "def_list", "def", "$@5", "$@6", "model_list", "$@7",
-  "$@8", "model", "$@9", "$@10", "constant_list", "res_list", "$@11",
-  "res", "fun", "$@12", "para_list", YY_NULLPTR
+  "\"end of file\"", "error", "\"invalid token\"", "LP", "RP", "EQ",
+  "Split", "Annotate", "END", "STR", "SP_STR", "INT", "$accept", "MCS",
+  "Model_List", "Model", "$@1", "$@2", "Res_List", "Res", "$@3", "$@4",
+  "Para_List", YY_NULLPTR
 };
 
 static const char *
@@ -594,12 +577,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-25)
+#define YYPACT_NINF (-9)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-26)
+#define YYTABLE_NINF (-6)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -608,14 +591,11 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -1,     7,    22,   -25,   -25,     8,    20,    11,   -25,    12,
-      21,    14,   -25,    15,    23,    17,   -25,    16,    19,   -25,
-     -12,    24,   -25,   -25,   -11,   -25,    25,   -25,    -9,   -25,
-     -25,   -25,   -25,   -25,    26,    28,    27,    29,   -25,    31,
-     -25,    -9,   -25,    30,   -25,    -3,   -25,   -25,    -6,     0,
-      32,   -25,   -25,    33,   -25,    34,    36,   -25,    37,   -25,
-      35,    39,    44,    36,     2,     4,   -25,   -25,   -25,   -25,
-     -25,   -10,   -25,     6,   -25,   -25
+      -9,     6,     0,    -9,     1,    -9,    -9,     2,     4,    -1,
+       5,     7,     8,     3,    10,     9,    11,    12,    13,    -9,
+      -5,    14,    -9,    -5,    -9,    15,    19,    20,    -9,    17,
+      16,    16,    -9,    -9,    -4,    -3,    23,    18,    25,    21,
+      -9,    22,    26,    27,    -9,    -9
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -623,30 +603,25 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     2,     1,     0,     0,     0,     3,     0,
-       0,     0,     4,     0,     0,     0,     5,     0,     0,     8,
-       0,     0,    11,     7,     0,    10,     0,    11,     0,    12,
-       9,    15,    14,     6,     0,     0,     0,     0,    16,     0,
-      18,     0,    13,     0,    17,     0,    23,    24,     0,     0,
-       0,    21,    22,     0,    19,     0,    27,    20,     0,    30,
-       0,     0,     0,    27,     0,     0,    26,    28,    29,    34,
-      35,     0,    31,     0,    32,    33
+       5,     0,     2,     4,     0,     1,     3,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     6,
+       0,    12,    10,     7,     9,     0,     0,     0,     8,     0,
+       0,     0,    14,    16,     0,     0,     0,     0,     0,     0,
+      15,     0,     0,     0,    13,    11
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -25,   -25,   -25,   -25,   -25,   -25,   -25,   -25,    18,   -25,
-     -25,    -8,   -25,   -25,   -25,   -25,   -25,   -25,   -24,   -25,
-     -25,   -25,   -25,   -25
+      -9,    -9,    -9,    29,    -9,    -9,    -9,    -8,    -9,    -9,
+      24
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     2,     5,     9,    13,    17,    20,    24,    25,    26,
-      34,    33,    35,    41,    38,    43,    55,    48,    57,    58,
-      60,    61,    62,    71
+       0,     1,     2,     3,     4,    20,    23,    24,    27,    26,
+      34
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -654,54 +629,47 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      31,    72,     1,    21,    27,    73,    22,    28,    32,    49,
-      46,    47,    50,    51,    52,    67,    68,    69,    70,    74,
-      75,     3,     4,     6,     7,     8,    11,    10,    12,    15,
-      14,    16,    19,    44,    18,    37,    36,    23,    29,    66,
-      53,    39,    42,    40,     0,    30,     0,    54,    45,   -25,
-      59,    64,    56,    63,    65
+      36,    38,    37,    37,    21,    22,     5,    -5,     7,     9,
+      10,     8,    11,    13,    14,    28,    12,    15,    16,    25,
+      17,    18,    30,    31,    19,    32,    29,    33,    39,    40,
+      41,     6,    42,    43,    44,    45,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    35
 };
 
 static const yytype_int8 yycheck[] =
 {
-       9,    11,     3,    15,    15,    15,    18,    18,    17,    15,
-      13,    14,    18,    13,    14,    13,    14,    13,    14,    13,
-      14,    14,     0,    15,     4,    14,     5,    15,    14,     6,
-      15,    14,    13,    41,    18,     7,    10,    13,    13,    63,
-       8,    14,    11,    14,    -1,    27,    -1,    14,    18,    13,
-      13,    12,    18,    18,    10
+       4,     4,     6,     6,     9,    10,     0,     7,     7,     5,
+      11,     9,     7,     5,    11,    23,     9,     7,     9,     5,
+       9,     9,     3,     3,    11,     8,    11,    11,     5,    11,
+       5,     2,    11,    11,     8,     8,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    31
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,    20,    14,     0,    21,    15,     4,    14,    22,
-      15,     5,    14,    23,    15,     6,    14,    24,    18,    13,
-      25,    15,    18,    13,    26,    27,    28,    15,    18,    13,
-      27,     9,    17,    30,    29,    31,    10,     7,    33,    14,
-      14,    32,    11,    34,    30,    18,    13,    14,    36,    15,
-      18,    13,    14,     8,    14,    35,    18,    37,    38,    13,
-      39,    40,    41,    18,    12,    10,    37,    13,    14,    13,
-      14,    42,    11,    15,    13,    14
+       0,    13,    14,    15,    16,     0,    15,     7,     9,     5,
+      11,     7,     9,     5,    11,     7,     9,     9,     9,    11,
+      17,     9,    10,    18,    19,     5,    21,    20,    19,    11,
+       3,     3,     8,    11,    22,    22,     4,     6,     4,     5,
+      11,     5,    11,    11,     8,     8
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    19,    21,    22,    23,    24,    20,    25,    25,    26,
-      26,    28,    29,    27,    30,    31,    32,    30,    34,    35,
-      33,    36,    36,    36,    36,    38,    37,    37,    39,    39,
-      41,    40,    42,    42,    42,    42
+       0,    12,    13,    14,    14,    16,    17,    15,    18,    18,
+      20,    19,    21,    19,    19,    22,    22
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     0,     0,     0,     0,    21,     3,     1,     3,
-       1,     0,     0,     6,     1,     0,     0,     5,     0,     0,
-      11,     3,     3,     1,     1,     0,     4,     0,     3,     3,
-       0,     5,     3,     3,     1,     1
+       0,     2,     1,     2,     1,     0,     0,    16,     2,     1,
+       0,     8,     0,     8,     4,     3,     1
 };
 
 
@@ -1164,402 +1132,192 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 2: /* $@1: %empty  */
-#line 65 "mcs.y"
-    {
-        model_size = atoi((yyvsp[0].str));
-        Model_Table = (MODEL*)malloc(sizeof(MODEL)*model_size);
-    }
-#line 1174 "mcs.tab.c"
+  case 2: /* MCS: Model_List  */
+#line 66 "mcs.y"
+                {
+    generateTerm(); 
+    generateFormula();
+}
+#line 1142 "mcs.tab.c"
     break;
 
-  case 3: /* $@2: %empty  */
-#line 70 "mcs.y"
+  case 3: /* Model_List: Model_List Model  */
+#line 72 "mcs.y"
     {
-        max_depth= atoi((yyvsp[0].str));
-        Term_Table = (TERMLIST*)malloc(sizeof(TERMLIST)*max_depth);
-        term_num = (int*)malloc(sizeof(int)*max_depth);
+        printModel();
+        initNewModel();
     }
-#line 1184 "mcs.tab.c"
+#line 1151 "mcs.tab.c"
     break;
 
-  case 4: /* $@3: %empty  */
-#line 76 "mcs.y"
+  case 4: /* Model_List: Model  */
+#line 77 "mcs.y"
     {
-        val_size=atoi((yyvsp[0].str));
-        Val_Table = (VAL*)malloc(sizeof(VAL)*val_size);
-        printf("Val number = %d\n",atoi((yyvsp[0].str)));
+        printModel();
+        initNewModel();
     }
-#line 1194 "mcs.tab.c"
+#line 1160 "mcs.tab.c"
     break;
 
-  case 5: /* $@4: %empty  */
-#line 82 "mcs.y"
+  case 5: /* $@1: %empty  */
+#line 83 "mcs.y"
     {
-        def_size=atoi((yyvsp[0].str));
-        Def_Table = (DEF*)malloc(sizeof(DEF)*def_size);
-        printf("Def number = %d\n",atoi((yyvsp[0].str)));
+        MODEL model=(MODEL)malloc(sizeof(struct Model));
+        
+        Model_Table.push_back(model);
     }
-#line 1204 "mcs.tab.c"
+#line 1170 "mcs.tab.c"
     break;
 
-  case 6: /* MCS: ModelSize INT_NUMBER $@1 Split TermDepth INT_NUMBER $@2 Split ValSize INT_NUMBER $@3 Split DefSize INT_NUMBER $@4 ResSplit val_list ResSplit def_list ResSplit model_list  */
-#line 88 "mcs.y"
+  case 6: /* $@2: %empty  */
+#line 91 "mcs.y"
     {
-        generateTerm(); 
-        generateFormula();
+        Model_Table[cur_model]->model_size=atoi((yyvsp[0].str));
     }
-#line 1213 "mcs.tab.c"
+#line 1178 "mcs.tab.c"
     break;
 
-  case 7: /* val_list: val_list Split STR  */
-#line 94 "mcs.y"
+  case 10: /* $@3: %empty  */
+#line 100 "mcs.y"
     {
-        len = getNameLength( (yyvsp[0].str) );
-        fname = (char*) malloc(sizeof(char)*(len+1));
-        strcpy(fname , (yyvsp[0].str));
+        len = strlen( (yyvsp[0].str) );
+        //fname = (char*) malloc(sizeof(char)*(len+1));
+        //strcpy(fname , $1);
+        //printf("Len = %d\n",strlen($1));
+        createDef=false;
+        int idx=getDefByName((yyvsp[0].str));
+        //printf("%s\n",fname);
+        //printf("%d\n",idx);
 
-        Val_Table[cur_val]=(VAL)malloc(sizeof(struct Val));
-        Val_Table[cur_val++]->val_name =fname;
-        printf("val name : %s , name len is %d\n", fname, len);
-    }
-#line 1227 "mcs.tab.c"
-    break;
-
-  case 8: /* val_list: STR  */
-#line 104 "mcs.y"
-    {
-        len = getNameLength( (yyvsp[0].str) );
-        fname = (char*) malloc(sizeof(char)*(len+1));
-        strcpy(fname , (yyvsp[0].str));
-
-        Val_Table[cur_val]=(VAL)malloc(sizeof(struct Val));
-        Val_Table[cur_val++]->val_name =fname;
-        printf("val name : %s , name len is %d\n", fname, len);
-    }
-#line 1241 "mcs.tab.c"
-    break;
-
-  case 11: /* $@5: %empty  */
-#line 117 "mcs.y"
-        {
-            Def_Table[cur_def] = (DEF)malloc(sizeof(struct Def));
-            Def_Table[cur_def]->para_size=0;
+        if (idx==-1) {
+            createDef=true;
+            DEF def=(DEF)malloc(sizeof(struct Def));
+            def->fun_name=(char*) malloc(sizeof(char)*(len));
+            strcpy(def->fun_name , (yyvsp[0].str));
+            printf("def name = %s\n",def->fun_name);
+            Def_Table.push_back(def);
         }
-#line 1250 "mcs.tab.c"
+        //printf("%d\n",cur_assign);
+
+        INPUTASSIGN input=(INPUTASSIGN)malloc(sizeof(struct InputAssign));
+        Model_Table[cur_model]->Assign_Table.push_back(input);
+        Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx = createDef?cur_def:idx;
+
+        para_size = 0;
+
+    }
+#line 1210 "mcs.tab.c"
     break;
 
-  case 12: /* $@6: %empty  */
-#line 122 "mcs.y"
-        {
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            Def_Table[cur_def]->fun_name =fname;
-            printf("fun def : %s  len is %d\n", fname, len);
-        }
-#line 1263 "mcs.tab.c"
-    break;
-
-  case 13: /* def: $@5 STR $@6 LFun INT_NUMBER RFun  */
-#line 131 "mcs.y"
-        {
-            Def_Table[cur_def]->para_size = atoi((yyvsp[-1].str));
+  case 11: /* Res: SP_STR $@3 LP Para_List RP EQ INT END  */
+#line 127 "mcs.y"
+    {
+        if (createDef){
+            Def_Table[cur_def]->para_size=para_size;
+            //printf("Def id = %d ,Def name = %s\n",cur_def,Def_Table[cur_def]->fun_name);
             cur_def++;
-            printf("def para size is %d \n", atoi((yyvsp[-1].str)));
-            //printf("len = %d\n", len);
         }
-#line 1274 "mcs.tab.c"
-    break;
-
-  case 15: /* $@7: %empty  */
-#line 140 "mcs.y"
-        {
-            Model_Table[cur_model]=(MODEL)malloc(sizeof(struct Model));
-            printf("model id = %d\n",cur_model);
-        }
-#line 1283 "mcs.tab.c"
-    break;
-
-  case 16: /* $@8: %empty  */
-#line 145 "mcs.y"
-        {
-            //max_constant_num = max(max_constant_num,cur_constant);
-            printModel();
-            initNewModel();
-        }
-#line 1293 "mcs.tab.c"
-    break;
-
-  case 18: /* $@9: %empty  */
-#line 153 "mcs.y"
-        {
-           Model_Table[cur_model]->constant_size=atoi((yyvsp[0].str));
-           Model_Table[cur_model]->Constant_Table=(CONSTANT*)malloc(sizeof(CONSTANT)*Model_Table[cur_model]->constant_size);
-           printf("Constant number = %d\n",atoi((yyvsp[0].str)));
-        }
-#line 1303 "mcs.tab.c"
-    break;
-
-  case 19: /* $@10: %empty  */
-#line 159 "mcs.y"
-        {
-            Model_Table[cur_model]->assign_size =atoi((yyvsp[0].str));
-            Model_Table[cur_model]->Assign_Table = (INPUTASSIGN*)malloc(sizeof(INPUTASSIGN)*Model_Table[cur_model]->assign_size);
-            printf("Assign number = %d\n",atoi((yyvsp[0].str)));
-        }
-#line 1313 "mcs.tab.c"
-    break;
-
-  case 21: /* constant_list: constant_list Split STR  */
-#line 167 "mcs.y"
-    {
-        len = getNameLength( (yyvsp[0].str) );
-        fname = (char*) malloc(sizeof(char)*(len+1));
-        strcpy(fname , (yyvsp[0].str));
-        Model_Table[cur_model]->Constant_Table[cur_constant]=(CONSTANT)malloc(sizeof(struct Constant));
-        Model_Table[cur_model]->Constant_Table[cur_constant++]->const_name = fname;
-        printf("constant name : %s , name len is %d\n", fname, len);
+        Model_Table[cur_model]->Assign_Table[cur_assign]->para_size = Def_Table[Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx]->para_size;
+        Model_Table[cur_model]->Assign_Table[cur_assign]->res = atoi((yyvsp[-1].str));
+        printAssign();
+        cur_assign++;
     }
-#line 1326 "mcs.tab.c"
+#line 1226 "mcs.tab.c"
     break;
 
-  case 22: /* constant_list: constant_list Split INT_NUMBER  */
-#line 176 "mcs.y"
+  case 12: /* $@4: %empty  */
+#line 139 "mcs.y"
     {
-        len = getNameLength( (yyvsp[0].str) );
-        fname = (char*) malloc(sizeof(char)*(len+1));
-        strcpy(fname , (yyvsp[0].str));
-        Model_Table[cur_model]->Constant_Table[cur_constant]=(CONSTANT)malloc(sizeof(struct Constant));
-        Model_Table[cur_model]->Constant_Table[cur_constant++]->const_name = fname;
-        printf("constant name : %s , name len is %d\n", fname, len);
+        len = strlen( (yyvsp[0].str) );
+        createDef=false;
+        int idx=getDefByName((yyvsp[0].str));
+        //printf("%s\n",fname);
+        //printf("%d\n",idx);
+
+        if (idx==-1) {
+            createDef=true;
+            DEF def=(DEF)malloc(sizeof(struct Def));
+            def->fun_name=(char*) malloc(sizeof(char)*(len));
+            strcpy(def->fun_name , (yyvsp[0].str));
+            printf("def name = %s\n",def->fun_name);
+            Def_Table.push_back(def);
+        }
+        //printf("%d\n",cur_assign);
+
+        INPUTASSIGN input=(INPUTASSIGN)malloc(sizeof(struct InputAssign));
+        Model_Table[cur_model]->Assign_Table.push_back(input);
+        Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx = createDef?cur_def:idx;
+
+        para_size = 0;
+
     }
-#line 1339 "mcs.tab.c"
+#line 1255 "mcs.tab.c"
     break;
 
-  case 23: /* constant_list: STR  */
-#line 185 "mcs.y"
+  case 13: /* Res: STR $@4 LP Para_List RP EQ INT END  */
+#line 163 "mcs.y"
     {
-        len = getNameLength( (yyvsp[0].str) );
-        fname = (char*) malloc(sizeof(char)*(len+1));
-        strcpy(fname , (yyvsp[0].str));
-        Model_Table[cur_model]->Constant_Table[cur_constant]=(CONSTANT)malloc(sizeof(struct Constant));
-        Model_Table[cur_model]->Constant_Table[cur_constant++]->const_name = fname;
-        printf("constant name : %s , name len is %d\n", fname, len);
+        if (createDef){
+            Def_Table[cur_def]->para_size=para_size;
+            cur_def++;
+        }
+        Model_Table[cur_model]->Assign_Table[cur_assign]->para_size = Def_Table[Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx]->para_size;
+        Model_Table[cur_model]->Assign_Table[cur_assign]->res = atoi((yyvsp[-1].str));
+        printAssign();
+        cur_assign++;
     }
-#line 1352 "mcs.tab.c"
+#line 1270 "mcs.tab.c"
     break;
 
-  case 24: /* constant_list: INT_NUMBER  */
-#line 194 "mcs.y"
+  case 14: /* Res: STR EQ INT END  */
+#line 174 "mcs.y"
     {
-        len = getNameLength( (yyvsp[0].str) );
-        fname = (char*) malloc(sizeof(char)*(len+1));
-        strcpy(fname , (yyvsp[0].str));
-        Model_Table[cur_model]->Constant_Table[cur_constant]=(CONSTANT)malloc(sizeof(struct Constant));
-        Model_Table[cur_model]->Constant_Table[cur_constant++]->const_name = fname;
-        printf("constant name : %s , name len is %d\n", fname, len);
+        len =  strlen( (yyvsp[-3].str) );
+        //fname = (char*) malloc(sizeof(char)*(len+1));
+        //strcpy(fname , $1);
+
+        int idx=getDefByName((yyvsp[-3].str));
+
+        if (idx==-1){
+            DEF def=(DEF)malloc(sizeof(struct Def));
+            def->fun_name=(char*) malloc(sizeof(char)*(len));
+            strcpy(def->fun_name , (yyvsp[-3].str));
+            def->para_size=0;
+            Def_Table.push_back(def);
+            cur_def++;
+        }
+
+        INPUTASSIGN input=(INPUTASSIGN)malloc(sizeof(struct InputAssign));
+        Model_Table[cur_model]->Assign_Table.push_back(input);
+        Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx = idx==-1?cur_def:idx;
+        Model_Table[cur_model]->Assign_Table[cur_assign]->para_size = 0;
+        Model_Table[cur_model]->Assign_Table[cur_assign]->res = atoi((yyvsp[-1].str));
+        printAssign();
+        cur_assign++;
     }
-#line 1365 "mcs.tab.c"
+#line 1299 "mcs.tab.c"
     break;
 
-  case 25: /* $@11: %empty  */
-#line 203 "mcs.y"
-          {
-            Model_Table[cur_model]->Assign_Table[cur_assign]=(INPUTASSIGN)malloc(sizeof(struct InputAssign));
-            Model_Table[cur_model]->Assign_Table[cur_assign]->para_size=0;
-        }
-#line 1374 "mcs.tab.c"
+  case 15: /* Para_List: Para_List Split INT  */
+#line 200 "mcs.y"
+    {
+        Model_Table[cur_model]->Assign_Table[cur_assign]->para_list.push_back(atoi((yyvsp[0].str)));
+        para_size++;
+    }
+#line 1308 "mcs.tab.c"
     break;
 
-  case 28: /* res: fun EQ STR  */
-#line 212 "mcs.y"
-        {
-            printf("eq res is %s\n",(yyvsp[0].str));
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            for (_i=0;_i<Model_Table[cur_model]->constant_size;_i++){
-                if (!strcmp(fname, Model_Table[cur_model]->Constant_Table[_i]->const_name)){
-                    Model_Table[cur_model]->Assign_Table[cur_assign]->res_idx=_i;
-                    break;
-                }
-            }
-            if (_i==Model_Table[cur_model]->constant_size){
-                printf("error : no definition of constant %s" ,(yyvsp[0].str));
-                exit(1);
-            }
-            cur_assign++;
-            free(fname);
-        }
-#line 1398 "mcs.tab.c"
-    break;
-
-  case 29: /* res: fun EQ INT_NUMBER  */
-#line 232 "mcs.y"
-        {
-            printf("eq res is %s\n",(yyvsp[0].str));
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            for (_i=0;_i<Model_Table[cur_model]->constant_size;_i++){
-                if (!strcmp(fname, Model_Table[cur_model]->Constant_Table[_i]->const_name)){
-                    Model_Table[cur_model]->Assign_Table[cur_assign]->res_idx=_i;
-                    break;
-                }
-            }
-            if (_i==Model_Table[cur_model]->constant_size){
-                printf("error : no definition of constant %s" ,(yyvsp[0].str));
-                exit(1);
-            }
-            cur_assign++;
-            free(fname);
-        }
-#line 1422 "mcs.tab.c"
-    break;
-
-  case 30: /* $@12: %empty  */
-#line 258 "mcs.y"
-        {
-            printf("fun STR = %s\n",(yyvsp[0].str));
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            for (_i=0;_i<def_size;_i++){
-                if (!strcmp(fname,Def_Table[_i]->fun_name)){
-                    Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx=_i;
-                    break;
-                }
-            }
-            if (_i==def_size){
-                printf("error : no exist definition of function %s" ,(yyvsp[0].str));
-                exit(1);
-            }
-            free(fname);
-        }
-#line 1445 "mcs.tab.c"
-    break;
-
-  case 31: /* fun: STR $@12 LFun para_list RFun  */
-#line 277 "mcs.y"
-        {
-            printf("assign para size = %d\n", Model_Table[cur_model]->Assign_Table[cur_assign]->para_size);
-            Model_Table[cur_model]->Assign_Table[cur_assign]->para_list_idx = (int*) malloc(sizeof(int)* Model_Table[cur_model]->Assign_Table[cur_assign]->para_size);
-            for (_i=0;_i<Model_Table[cur_model]->Assign_Table[cur_assign]->para_size;_i++){
-                 Model_Table[cur_model]->Assign_Table[cur_assign]->para_list_idx[_i] = para_idx_tmp[_i];
-            }
-        }
-#line 1457 "mcs.tab.c"
-    break;
-
-  case 32: /* para_list: para_list Split STR  */
-#line 286 "mcs.y"
-        {
-            ( Model_Table[cur_model]->Assign_Table[cur_assign]->para_size)+=1;
-            //pil->next=(PARAIDXLIST)malloc(sizeof(struct ParaIdxList));
-
-            printf("%d'th : para STR = %s\n", Model_Table[cur_model]->Assign_Table[cur_assign]->para_size,(yyvsp[0].str));
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            for (_i=0;_i<Model_Table[cur_model]->constant_size;_i++){
-                if (!strcmp(fname, Model_Table[cur_model]->Constant_Table[_i]->const_name)){
-                    para_idx_tmp[ Model_Table[cur_model]->Assign_Table[cur_assign]->para_size-1]=_i;
-                    break;
-                }
-            }
-            if (_i==Model_Table[cur_model]->constant_size){
-                printf("error : no exist definition of constant %s" ,fname);
-                exit(1);
-            }
-            free(fname);
-        }
-#line 1483 "mcs.tab.c"
-    break;
-
-  case 33: /* para_list: para_list Split INT_NUMBER  */
-#line 308 "mcs.y"
-        {
-            ( Model_Table[cur_model]->Assign_Table[cur_assign]->para_size)+=1;
-            //pil->next=(PARAIDXLIST)malloc(sizeof(struct ParaIdxList));
-
-            printf("%d'th : para STR = %s\n", Model_Table[cur_model]->Assign_Table[cur_assign]->para_size,(yyvsp[0].str));
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            for (_i=0;_i<Model_Table[cur_model]->constant_size;_i++){
-                if (!strcmp(fname, Model_Table[cur_model]->Constant_Table[_i]->const_name)){
-                    para_idx_tmp[ Model_Table[cur_model]->Assign_Table[cur_assign]->para_size-1]=_i;
-                    break;
-                }
-            }
-            if (_i==Model_Table[cur_model]->constant_size){
-                printf("error : no exist definition of constant %s" ,fname);
-                exit(1);
-            }
-            free(fname);
-        }
-#line 1509 "mcs.tab.c"
-    break;
-
-  case 34: /* para_list: STR  */
-#line 330 "mcs.y"
-        {
-            ( Model_Table[cur_model]->Assign_Table[cur_assign]->para_size)+=1;
-            printf("%d'th : para STR = %s\n", Model_Table[cur_model]->Assign_Table[cur_assign]->para_size,(yyvsp[0].str));
-
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            for (_i=0;_i<Model_Table[cur_model]->constant_size;_i++){
-                if (!strcmp(fname, Model_Table[cur_model]->Constant_Table[_i]->const_name)){
-                    para_idx_tmp[ Model_Table[cur_model]->Assign_Table[cur_assign]->para_size-1]=_i;
-                    break;
-                }
-            }
-            if (_i==Model_Table[cur_model]->constant_size){
-                printf("error : no exist definition of function %s" ,fname);
-                exit(1);
-            }
-            free(fname);
-        }
-#line 1534 "mcs.tab.c"
-    break;
-
-  case 35: /* para_list: INT_NUMBER  */
-#line 351 "mcs.y"
-        {
-            ( Model_Table[cur_model]->Assign_Table[cur_assign]->para_size)+=1;
-            printf("%d'th : para STR = %s\n", Model_Table[cur_model]->Assign_Table[cur_assign]->para_size,(yyvsp[0].str));
-
-            len = getNameLength( (yyvsp[0].str) );
-            fname = (char*) malloc(sizeof(char)*(len+1));
-            strcpy(fname , (yyvsp[0].str));
-
-            for (_i=0;_i<Model_Table[cur_model]->constant_size;_i++){
-                if (!strcmp(fname, Model_Table[cur_model]->Constant_Table[_i]->const_name)){
-                    para_idx_tmp[ Model_Table[cur_model]->Assign_Table[cur_assign]->para_size-1]=_i;
-                    break;
-                }
-            }
-            if (_i==Model_Table[cur_model]->constant_size){
-                printf("error : no exist definition of function %s" ,fname);
-                exit(1);
-            }
-            free(fname);
-        }
-#line 1559 "mcs.tab.c"
+  case 16: /* Para_List: INT  */
+#line 205 "mcs.y"
+    {
+        Model_Table[cur_model]->Assign_Table[cur_assign]->para_list.push_back(atoi((yyvsp[0].str)));
+        para_size++;
+    }
+#line 1317 "mcs.tab.c"
     break;
 
 
-#line 1563 "mcs.tab.c"
+#line 1321 "mcs.tab.c"
 
       default: break;
     }
@@ -1752,66 +1510,67 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 372 "mcs.y"
+#line 210 "mcs.y"
 
 void initNewModel(){
-    //for (_i=0;_i<cur_def;_i++){
-        //free(Def_Table[_i]->fun_name);
-        //free(Def_Table[_i]);
-    //}
-    //for (_i;_i<cur_assign;_i++){
-        //free(Assgin_Table[_i]->para_list_idx);
-        //free(Assgin_Table[_i]);
-    //}
     cur_assign=0;
-    cur_constant=0;
     
     cur_model+=1;
-    //memset(term_num,0,sizeof(term_num));
-    //pil=NULL;
-
-    // model now=model_list[model_size];
-    // now.max_def_size=1024;
-    // now.def_size=0;
-    // now.max_formula_size=1024;
-    // now.formula_size=0;
-    // now.def_list=(def*)malloc(sizeof(def)*now.max_def_size);
-    // now.formula_list=(formula*)malloc(sizeof(formula)*now.max_formula_size);
 }
-// void createNewDef(char* s,int n){
-//     model now=model_list[model_size];
-//     def* Def=&now.def_list[now.def_size++];
-//     Def->para_num=n;
-//     Def->name=s;
-//     Def->name_size=getNameLength(s);
-// }
+
+int getDefByName(char *s){
+    //printf("def size = %d\n",Def_Table.size());
+    for (_i=0;_i<Def_Table.size();_i++){
+            if (!strcmp(s, Def_Table[_i]->fun_name)){
+                    return _i;
+                    break;
+            }
+    }
+    return -1;
+}
 int getNameLength(char *s){
     int len=1;
-    while ((*(s+len*sizeof(char))>='a'&&*(s+len*sizeof(char))<='z')||(*(s+len*sizeof(char))>='A'&&*(s+len*sizeof(char))<='Z')
-        ||(*(s+len*sizeof(char))>='0'&&*(s+len*sizeof(char))<='9')){
+    // while ((*(s+len*sizeof(char))>='a'&&*(s+len*sizeof(char))<='z')||(*(s+len*sizeof(char))>='A'&&*(s+len*sizeof(char))<='Z')
+    //     ||(*(s+len*sizeof(char))>='0'&&*(s+len*sizeof(char))<='9')){
+    while (!(*(s+len*sizeof(char))==' '||*(s+len*sizeof(char))=='\t'||*(s+len*sizeof(char))=='\n')){
         len++;
         if (*(s+len*sizeof(char))=='\n'||*(s+len*sizeof(char))==' ') return len;
     }
     return len;
 }
 
-void printModel(){
-    for (_i=0;_i<cur_constant;_i++){
-        printf("Model id : %d , constant %s \n", cur_model, Model_Table[cur_model]->Constant_Table[_i]->const_name);
+void printAssign(){
+    printf("\ncur_def = %d\n",cur_def);
+    for (_i=0;_i<cur_def;_i++){
+        printf("def id =%d : %s\n",_i,Def_Table[_i]->fun_name);
     }
+    printf("\nModel id = %d\n Assign id = %d\n",cur_model,cur_assign);
+    printf("para size = %d\n",Model_Table[cur_model]->Assign_Table[cur_assign]->para_size);
+    printf("def id = %d\n",Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx);
+    printf("%s(",Def_Table[Model_Table[cur_model]->Assign_Table[cur_assign]->fun_idx]->fun_name);
+    for (_i=0;_i<Model_Table[cur_model]->Assign_Table[cur_assign]->para_size;_i++){
+        printf("%d,",Model_Table[cur_model]->Assign_Table[cur_assign]->para_list[_i]);
+    }
+    printf(") = %d\n",Model_Table[cur_model]->Assign_Table[cur_assign]->res);
+ }
+
+void printModel(){
+    // for (_i=0;_i<cur_constant;_i++){
+    //     printf("Model id : %d , constant %s \n", cur_model, Model_Table[cur_model]->Constant_Table[_i]->const_name);
+    // }
     for (_i=0;_i<cur_assign;_i++){
         printf("Assign is %s (", Def_Table[Model_Table[cur_model]->Assign_Table[_i]->fun_idx]->fun_name);
         for (_j=0;_j<Model_Table[cur_model]->Assign_Table[_i]->para_size;_j++){
-            printf("%s ,",Model_Table[cur_model]->Constant_Table[Model_Table[cur_model]->Assign_Table[_i]->para_list_idx[_j]]->const_name);
+            printf("%d ,",Model_Table[cur_model]->Assign_Table[_i]->para_list[_j]);
         }
-        printf(" )= %s \n", Model_Table[cur_model]->Constant_Table[Model_Table[cur_model]->Assign_Table[_i]->res_idx]->const_name);
+        printf(" )= %d \n", Model_Table[cur_model]->Assign_Table[_i]->res);
     }
 }
 void printTerm(TERM term){
     FILE* fp;
     fp = fopen("result.txt","a");
     if (term->isfun==0){
-        fprintf(fp,"%s", Val_Table[term->idx]->val_name);
+        fprintf(fp,"$%s", 'a'+term->idx);
         fclose(fp);
         return;
     }
@@ -1846,12 +1605,12 @@ int calculateByModel(TERM term,int *para_val_list,int model_id){
         if (Model_Table[model_id]->Assign_Table[i]->fun_idx==term->idx){
             int flag=1;
             for (int j=0;j<term->para_size;j++){
-                if (Model_Table[model_id]->Assign_Table[i]->para_list_idx[j]!=para_val_list[j]){
+                if (Model_Table[model_id]->Assign_Table[i]->para_list[j]!=para_val_list[j]){
                     flag=0;
                     break;
                 }
             }
-            if (flag) return Model_Table[model_id]->Assign_Table[i]->res_idx;
+            if (flag) return Model_Table[model_id]->Assign_Table[i]->res;
         }
     }
     return -1;
@@ -1871,7 +1630,8 @@ int getResult(TERM term,int* val_list,int model_id){
     free(para_val_list);
     return res;
 }
-int enumerateVal(int *pren_list,int pren_id,int *val_list,TERM term1,TERM term2,int model_id){
+//int enumerateVal(int *pren_list,int pren_id,int *val_list,TERM term1,TERM term2,int model_id){
+int enumerateVal(int pren_id,int *val_list,TERM term1,TERM term2,int model_id){
     if (pren_id == val_size){
         // for (int i=0;i<val_size;i++){
         //     if (pren_list[i]!=-1)
@@ -1883,76 +1643,57 @@ int enumerateVal(int *pren_list,int pren_id,int *val_list,TERM term1,TERM term2,
         // printf("res1 = %d\n",res1);
         // printf("res2 = %d\n",res2);
         if (res1==-1||res2==-1) 
-            return -1;
+            return 0;
         return res1==res2;
     }
-    if (pren_list[pren_id]==-1) 
-        return enumerateVal(pren_list,pren_id+1,val_list,term1,term2,model_id);
-    int t=0;
-    for (int i=0;i<Model_Table[model_id]->constant_size;i++){
+    // if (pren_list[pren_id]==-1) 
+    //     return enumerateVal(pren_list,pren_id+1,val_list,term1,term2,model_id);
+    //int t=0;
+    for (int i=0;i<Model_Table[model_id]->model_size;i++){
         val_list[pren_id]=i;
-        int res=enumerateVal(pren_list,pren_id+1,val_list,term1,term2,model_id);
-        if (res!=-1)
-            t+=res;
-        if (pren_list[pren_id]==1){
-            if (res==0) 
-                return 0;       
-        }else {
-            if (res==1)
-                return 1;
-        }
+        int res=enumerateVal(pren_id+1,val_list,term1,term2,model_id);
+        //if (res!=-1)
+         //   t+=res;
+        if (res==0) 
+            return 0;
+        // if (pren_list[pren_id]==1){
+        //     if (res==0) 
+        //         return 0;       
+        // }else {
+        //     if (res==1)
+        //         return 1;
+        // }
     }
-    if (t==0) return -1;
+    //if (t==0) return -1;
     return 1;
 }
-// int checkFormulaEQ(FORMULA formula1,){
-    
-// }
-// void AddFormula(int *pren_list,TERM term1,TERM term2){
-//     FORMULALIST now = Formula_List->cur;
-//     for (int i=0;i<formula_num;i++){
-//         //if (checkFormulaEQ(now,)) return;
-//         now = now->next->cur;
-//     }
-//     FORMULA formula = (FORMULA)malloc(sizeof(struct Formula));
-//     formula->term1 = term1;
-//     formula->term2 = term2;
-//     formula->pren_list = (int*)malloc(sizeof(int)*val_size);
-//     for (int i=0;i<val_size;i++)
-//     formula->pren_list[i] = pren_list[i];
 
-//     formula_num+=1;
-//     FORMULALIST formula_list = (FORMULALIST)malloc(sizeof(struct FormulaList));
-//     formula_list->cur = formula;
-//     formula_list->next = Formula_List;
-//     Formula_List = formula_list;
-// }
-int checkByModel(int *pren_list,TERM term1,TERM term2){
+//int checkByModel(int *pren_list,TERM term1,TERM term2){
+int checkByModel(TERM term1,TERM term2){
     int *val_list;
     val_list=(int*)malloc(sizeof(int)*val_size);
     int res=0;
-    for (int i=0;i<model_size;i++){
+    for (int i=0;i<cur_model;i++){
         //printf("model_id = %d\n",i);
-        res += enumerateVal(pren_list,0,val_list,term1,term2,i);
+        res += enumerateVal(0,val_list,term1,term2,i);
     }
-    if (res==model_size) {
+    if (res==cur_model) {
         FILE* fp;
         fp = fopen("result.txt","a");
-        for (int i=0;i<val_size;i++){
-            if (pren_list[i]==1)
-                fprintf(fp,"/forall %s ", Val_Table[i]->val_name);
-            else if (pren_list[i]==0) fprintf(fp,"/exist %s ", Val_Table[i]->val_name);
-        }
-        fclose(fp);
-        printTerm(term1);
-        fp = fopen("result.txt","a");
-        fprintf(fp," = ");
-        fclose(fp);
-        printTerm(term2);
-        fp = fopen("result.txt","a");
-        fprintf(fp,"\n");
-        fclose(fp);
-        //AddFormula(pren_list,term1,term2);
+        // for (int i=0;i<val_size;i++){
+        //     if (pren_list[i]==1)
+        //         fprintf(fp,"/forall %s ", Val_Table[i]->val_name);
+        //     else if (pren_list[i]==0) fprintf(fp,"/exist %s ", Val_Table[i]->val_name);
+        //}
+        // fclose(fp);
+        // printTerm(term1);
+        // fp = fopen("result.txt","a");
+        // fprintf(fp," = ");
+        // fclose(fp);
+        // printTerm(term2);
+        // fp = fopen("result.txt","a");
+        // fprintf(fp,"\n");
+        // fclose(fp);
         //printf("formula is right\n");
         return 1;
     }
@@ -1960,76 +1701,93 @@ int checkByModel(int *pren_list,TERM term1,TERM term2){
     free(val_list);
     return 0;
 }
-void getLitInTerm(TERM term,int* hasLit){
-    if (term->isfun==0){
-        hasLit[term->idx]=1;
-        return;
-    }
-    for (int i=0;i<term->para_size;i++){
-        getLitInTerm(term->para_list[i],hasLit);
-    }
-}
-//pren=1表示任意，=0表示存在量词
-int generatePREN(int id,int* pren_list,TERM term1,TERM term2,int* hasLit){
-    if (id>val_size){
-        int forall_sum=0;
-        for (int i=0;i<val_size;i++)
-            if (pren_list[i]==1) forall_sum+=1;
-        // for (int i=0;i<val_size;i++){
-        //     if (pren_list[i]==1)
-        //         printf("/forall %s ", Val_Table[i]->val_name);
-        //     else if (pren_list[i]==0) printf("/exist %s ", Val_Table[i]->val_name);
-        // }
-        // printTerm(term1);
-        // printf(" = ");
-        // printTerm(term2);
-        // printf("\n");
-        if (forall_sum>0)
-            return checkByModel(pren_list,term1,term2);
-        else return 0;
-    }
-    if (!hasLit[id]) {
-        pren_list[id]=-1;
-        return generatePREN(id+1,pren_list,term1,term2,hasLit); 
-    }
-    int flag;
-    for (int i=1;i>=0;i--){
-        if (i==0&&gen_exist==0) continue;  
-        pren_list[id]=i;
-        flag=generatePREN(id+1,pren_list,term1,term2,hasLit);
-        if (flag&&i==1) return 0;
-    }
-    return flag;
-}
+// void getLitInTerm(TERM term,int* hasLit){
+//     if (term->isfun==0){
+//         hasLit[term->idx]=1;
+//         return;
+//     }
+//     for (int i=0;i<term->para_size;i++){
+//         getLitInTerm(term->para_list[i],hasLit);
+//     }
+// }
+// //pren=1表示任意，=0表示存在量词
+// int generatePREN(int id,int* pren_list,TERM term1,TERM term2,int* hasLit){
+//     if (id>val_size){
+//         int forall_sum=0;
+//         for (int i=0;i<val_size;i++)
+//             if (pren_list[i]==1) forall_sum+=1;
+//         // for (int i=0;i<val_size;i++){
+//         //     if (pren_list[i]==1)
+//         //         printf("/forall %s ", Val_Table[i]->val_name);
+//         //     else if (pren_list[i]==0) printf("/exist %s ", Val_Table[i]->val_name);
+//         // }
+//         // printTerm(term1);
+//         // printf(" = ");
+//         // printTerm(term2);
+//         // printf("\n");
+//         if (forall_sum>0)
+//             return checkByModel(pren_list,term1,term2);
+//         else return 0;
+//     }
+//     if (!hasLit[id]) {
+//         pren_list[id]=-1;
+//         return generatePREN(id+1,pren_list,term1,term2,hasLit); 
+//     }
+//     int flag;
+//     for (int i=1;i>=0;i--){
+//         if (i==0&&gen_exist==0) continue;  
+//         pren_list[id]=i;
+//         flag=generatePREN(id+1,pren_list,term1,term2,hasLit);
+//         if (flag&&i==1) return 0;
+//     }
+//     return flag;
+// }
 //todo: 之后要将Formula建模成数据类型
 void generateFormula(){
-    int *hasLit=(int*)malloc(sizeof(int)*val_size);
-    int* pren_list=(int*)malloc(sizeof(int)*val_size);
-
-
     for (int i1=1;i1<=max_depth;i1++){
-        TERMLIST termlist1 = Term_Table[i1];
         for (int j1=0;j1<term_num[i1];j1++){
-            memset(hasLit,0,sizeof(hasLit));
-            TERM t1=termlist1->cur;
             for (int i2=0;i2<=i1;i2++){
-                TERMLIST termlist2 = Term_Table[i2];
                 for (int j2=0;j2<term_num[i2];j2++){
                     if (i2==i1&&j2==j1) break;
-                    TERM t2=termlist2->cur;
-                    for (_i=0;_i<val_size;_i++)
-                        hasLit[_i]=0;
-                    getLitInTerm(t1,hasLit);
-                    getLitInTerm(t2,hasLit);
-                    generatePREN(0,pren_list,t1,t2,hasLit);
-                    termlist2=termlist2->next;
+                    int flag = checkByModel(Term_Table[i1][j1],Term_Table[i2][j2]);
+                    if (flag){
+                        FORMULA f=(FORMULA)malloc(sizeof(struct Formula));
+                        f->term1 = Term_Table[i1][j1];
+                        f->term2 = Term_Table[i2][j2];
+                        Formula_List.push_back(f);
+                    }
                 }
             }
-            termlist1=termlist1->next;
         }
     }
-    free(hasLit);
-    free(pren_list);
+
+    // int *hasLit=(int*)malloc(sizeof(int)*val_size);
+    // int* pren_list=(int*)malloc(sizeof(int)*val_size);
+
+
+    // for (int i1=1;i1<=max_depth;i1++){
+    //     TERMLIST termlist1 = Term_Table[i1];
+    //     for (int j1=0;j1<term_num[i1];j1++){
+    //         memset(hasLit,0,sizeof(hasLit));
+    //         TERM t1=termlist1->cur;
+    //         for (int i2=0;i2<=i1;i2++){
+    //             TERMLIST termlist2 = Term_Table[i2];
+    //             for (int j2=0;j2<term_num[i2];j2++){
+    //                 if (i2==i1&&j2==j1) break;
+    //                 TERM t2=termlist2->cur;
+    //                 for (_i=0;_i<val_size;_i++)
+    //                     hasLit[_i]=0;
+    //                 getLitInTerm(t1,hasLit);
+    //                 getLitInTerm(t2,hasLit);
+    //                 generatePREN(0,pren_list,t1,t2,hasLit);
+    //                 termlist2=termlist2->next;
+    //             }
+    //         }
+    //         termlist1=termlist1->next;
+    //     }
+    // }
+    // free(hasLit);
+    // free(pren_list);
 }
 void allocatePara(int depth,int nowdepth,int para_idx,int para_num,TERM term){
     //printf("allocate nowdep=%d para_idx=%d \n",nowdepth,para_idx);
@@ -2044,27 +1802,33 @@ void allocatePara(int depth,int nowdepth,int para_idx,int para_num,TERM term){
         for (int i=0;i<term->para_size;i++){
             t->para_list[i]=term->para_list[i];
         }
-        if (term_num[depth]==0){
-            Term_Table[depth]=(TERMLIST)malloc(sizeof(struct TermList));
-            Term_Table[depth]->cur=t;
-            Term_Table[depth]->next=NULL;
-        }else {
-            TERMLIST termlist=(TERMLIST)malloc(sizeof(struct TermList));
-            termlist->cur=t;
-            termlist->next=NULL;
-            TERMLIST cur=Term_Table[depth];
+        for (int j=0;j<term_num[depth];j++){
             memset(mp,-1,sizeof(mp));
-            if (depth>=2&&hasRewrite(cur->cur,termlist->cur)) return;
-            while (cur->next!=NULL){
-                cur=cur->next;
-                memset(mp,-1,sizeof(mp));
-                if (depth>=2&&hasRewrite(cur->cur,termlist->cur)) return;
-            }
-            cur->next=termlist;
-            // termlist->next = Term_Table[depth];
-            // termlist->cur = term;
-            // Term_Table[depth] = termlist;
+            if (depth>=2&&hasRewrite(t,Term_Table[depth][j])) return;
         }
+        // if (term_num[depth]==0){
+        //     Term_Table[depth]=(TERMLIST)malloc(sizeof(struct TermList));
+        //     Term_Table[depth]->cur=t;
+        //     Term_Table[depth]->next=NULL;
+        // }else {
+        //     TERMLIST termlist=(TERMLIST)malloc(sizeof(struct TermList));
+        //     termlist->cur=t;
+        //     termlist->next=NULL;
+        //     TERMLIST cur=Term_Table[depth];
+        //     memset(mp,-1,sizeof(mp));
+        //     if (depth>=2&&hasRewrite(cur->cur,termlist->cur)) return;
+        //     while (cur->next!=NULL){
+        //         cur=cur->next;
+        //         memset(mp,-1,sizeof(mp));
+        //         if (depth>=2&&hasRewrite(cur->cur,termlist->cur)) return;
+        //     }
+        //     cur->next=termlist;
+        //     // termlist->next = Term_Table[depth];
+        //     // termlist->cur = term;
+        //     // Term_Table[depth] = termlist;
+        // }
+
+        Term_Table[depth].push_back(t);
         // printf("get term : ");
         // printTerm(Term_Table[depth]->cur);
         // printf("\n");
@@ -2072,15 +1836,19 @@ void allocatePara(int depth,int nowdepth,int para_idx,int para_num,TERM term){
         return;
     }
     for (int i=nowdepth;i>=0;i--){
-        TERMLIST termlist = Term_Table[i];
+        //TERMLIST termlist = Term_Table[i];
         for (int k=0;k<term_num[i];k++){
-            term->para_list[para_idx] = termlist->cur;
+            //term->para_list[para_idx] = termlist->cur;
+            term->para_list[para_idx]=Term_Table[i][k];
             allocatePara(depth,nowdepth-i,para_idx+1,para_num,term);
-            termlist = termlist->next;
+            //termlist = termlist->next;
         }
     }
 }
 void generateTerm(){
+    //Term_Table = malloc(sizeof(std::vector<TERM> )*max_depth);
+    Term_Table = new std::vector<TERM> [max_depth];
+    term_num = (int*)malloc(sizeof(int)*max_depth);
     for (int i=0;i<=max_depth;i++){
         printf("i=%d\n",i);
         if (i==0){
@@ -2091,26 +1859,39 @@ void generateTerm(){
                 term->depth=0;
                 term->para_size=0;
                 term->idx=j;
-                if (term_num[i]==0){
-                    Term_Table[i]=(TERMLIST)malloc(sizeof(struct TermList));
-                    Term_Table[i]->cur=term;
-                }else {
-                    TERMLIST termlist=(TERMLIST)malloc(sizeof(struct TermList));
-                    termlist->cur=term;
-                    termlist->next=NULL;
-                    TERMLIST cur=Term_Table[i];
-                    while (cur->next!=NULL){
-                       cur=cur->next;
-                    }
-                    cur->next=termlist;
-                        //  termlist->next = Term_Table[i];
-                        //  termlist->cur = term;
-                        //  Term_Table[i] = termlist;
-                }
+                Term_Table[i].push_back(term);
+                // if (term_num[i]==0){
+                //     Term_Table[i]=(TERMLIST)malloc(sizeof(struct TermList));
+                //    Term_Table[i]->cur=term;
+                // }else {
+                //     TERMLIST termlist=(TERMLIST)malloc(sizeof(struct TermList));
+                //     termlist->cur=term;
+                //     termlist->next=NULL;
+                //     TERMLIST cur=Term_Table[i];
+                //     while (cur->next!=NULL){
+                //        cur=cur->next;
+                //     }
+                //     cur->next=termlist;
+                //         //  termlist->next = Term_Table[i];
+                //         //  termlist->cur = term;
+                //         //  Term_Table[i] = termlist;
+                // }
+
                 term_num[i]++;
             }
+            for (int j=0;j<cur_def;j++){
+                if (Def_Table[j]->para_size==0){
+                    printf("Constant : id = %d , cname = %s\n",j,Def_Table[j]->fun_name);
+                    TERM term=(TERM)malloc(sizeof(struct Term));
+                    term->isfun=1;
+                    term->depth=0;
+                    term->para_size=0;
+                    term->idx=j;
+                    Term_Table[i].push_back(term);
+                }
+            }
         }else {
-            for (int j=0;j<def_size;j++){
+            for (int j=0;j<cur_def;j++){
                 if (Def_Table[j]->para_size>0){
                     TERM term=(TERM)malloc(sizeof(struct Term));
                     term->isfun=1;
@@ -2126,17 +1907,23 @@ void generateTerm(){
     FILE* fp;
     fp = fopen("result.txt","a");
     for (int i=0;i<=max_depth;i++){
-        TERMLIST termlist = Term_Table[i];
-        fp = fopen("result.txt","a");
-        fprintf(fp,"dep = %d  ,  term_num has %d\n",i,term_num[i]);
-        fclose(fp);
         for (int k=0;k<term_num[i];k++){
-            printTerm(termlist->cur);
-            fp = fopen("result.txt","a");
-            fprintf(fp,"\n");
-            fclose(fp);
-            termlist = termlist->next;
+            printTerm(Term_Table[i][k]);
+             fp = fopen("result.txt","a");
+             fprintf(fp,"\n");
+             fclose(fp);
         }
+        // TERMLIST termlist = Term_Table[i];
+        // fp = fopen("result.txt","a");
+        // fprintf(fp,"dep = %d  ,  term_num has %d\n",i,term_num[i]);
+        // fclose(fp);
+        // for (int k=0;k<term_num[i];k++){
+        //     printTerm(termlist->cur);
+        //     fp = fopen("result.txt","a");
+        //     fprintf(fp,"\n");
+        //     fclose(fp);
+        //     termlist = termlist->next;
+        // }
     }
     fp = fopen("result.txt","a");
     fprintf(fp,"\n");

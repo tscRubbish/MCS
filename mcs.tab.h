@@ -54,22 +54,15 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    ModelSize = 258,               /* ModelSize  */
-    TermDepth = 259,               /* TermDepth  */
-    ValSize = 260,                 /* ValSize  */
-    DefSize = 261,                 /* DefSize  */
-    ConstantSize = 262,            /* ConstantSize  */
-    AssignSize = 263,              /* AssignSize  */
-    ModelSplit = 264,              /* ModelSplit  */
-    LFun = 265,                    /* LFun  */
-    RFun = 266,                    /* RFun  */
-    EQ = 267,                      /* EQ  */
-    STR = 268,                     /* STR  */
-    INT_NUMBER = 269,              /* INT_NUMBER  */
-    Split = 270,                   /* Split  */
-    DefSplit = 271,                /* DefSplit  */
-    End = 272,                     /* End  */
-    ResSplit = 273                 /* ResSplit  */
+    LP = 258,                      /* LP  */
+    RP = 259,                      /* RP  */
+    EQ = 260,                      /* EQ  */
+    Split = 261,                   /* Split  */
+    Annotate = 262,                /* Annotate  */
+    END = 263,                     /* END  */
+    STR = 264,                     /* STR  */
+    SP_STR = 265,                  /* SP_STR  */
+    INT = 266                      /* INT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -78,12 +71,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 35 "mcs.y"
+#line 44 "mcs.y"
 
     int Intval;           
     char* str;           
 
-#line 87 "mcs.tab.h"
+#line 80 "mcs.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -4,22 +4,15 @@
   int lexerror(char *s);
 %}
 %%
-"MODEL SIZE=" {return ModelSize;}
-"TERM DEPTH=" {return TermDepth;}
-"VAL SIZE=" {return ValSize;}
-"DEF SIZE=" {return DefSize;}
-"CONSTANT SIZE=" {return ConstantSize;}
-"ASSIGN SIZE=" {return AssignSize;}
-"#" {return ModelSplit;}
-")" {return RFun;}
-"(" {return LFun;}
+")" {return RP;}
+"(" {return LP;}
 "=" {return EQ;}
-[A-Za-z]+ {yylval.str=yytext;return STR;} 
-[0-9]+ {yylval.Intval=atoi(yytext);yylval.str=yytext;return INT_NUMBER;}
+"\%" {return Annotate;}
+[A-Za-z$_][A-Za-z0-9$_]* {yylval.str=yytext;return STR;} 
+[-+*/\\^<>=`~?@&|!#']+ {yylval.str=yytext;return SP_STR;}
+[0-9]+ {yylval.Intval=atoi(yytext);yylval.str=yytext;return INT;}
 "," {return Split;}
-"%" {return DefSplit;}
-"." {return End;}
-";" {return ResSplit;}
+"\." {return END;}
 [\r\n] ;
 [ \t] ;
 

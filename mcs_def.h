@@ -1,6 +1,7 @@
 #include <stdio.h>
-
 #include <assert.h>
+#include <vector>
+
 
 #define MAX_N_DEF 1024
 #define MAX_N_ASSIGN 1024
@@ -9,12 +10,23 @@
 #define MAX_N_MODEL 1024
 #define MAX_DEPTH 8
 
+
 typedef struct InputAssign {
     int fun_idx;
     int para_size;
-    int* para_list_idx;
-    int res_idx;
+    //int* para_list;
+    std::vector<int> para_list;
+    int res;
 } *INPUTASSIGN;
+
+typedef struct Model{
+//    struct Constant **Constant_Table;
+//    int constant_size;
+      std::vector<INPUTASSIGN> Assign_Table;
+//    struct InputAssign **Assign_Table;
+      int assign_size;
+      int model_size;
+}*MODEL;
 
 typedef struct Def{
     int para_size;
@@ -27,53 +39,47 @@ typedef struct Term{
     int idx;
     int para_size;
     struct Term **para_list; 
+    //std::vector<Term*> para_list;
 } *TERM;
 
-typedef struct TermList{
-    TERM cur;
-    struct TermList *next;
-}*TERMLIST;
+// typedef struct TermList{
+//     TERM cur;
+//     struct TermList *next;
+// }*TERMLIST;
 
-typedef struct Model{
-    struct Constant **Constant_Table;
-    int constant_size;
-    struct InputAssign **Assign_Table;
-    int assign_size;
-}*MODEL;
+// typedef struct Val{
+//     char *val_name;
+// }*VAL;
 
-typedef struct Val{
-    char *val_name;
-}*VAL;
-
-typedef struct Constant{
-    char *const_name;
-}*CONSTANT;
+// typedef struct Constant{
+//     char *const_name;
+// }*CONSTANT;
 
 typedef struct Formula{
     struct Term *term1;
     struct Term *term2;
-    int *pren_list;
+    //int *pren_list;
 }*FORMULA;
 
-typedef struct FormulaList{
-    FORMULA cur;
-    struct FormulaList *next;
-}*FORMULALIST;
+// typedef struct FormulaList{
+//     FORMULA cur;
+//     struct FormulaList *next;
+// }*FORMULALIST;
 
-TERMLIST *Term_Table;
+std::vector<TERM> *Term_Table;
 int *term_num;
-FORMULALIST Formula_List;
-int formula_num=0;
+//FORMULALIST Formula_List;
+std::vector<FORMULA> Formula_List;
 
-MODEL* Model_Table;
-VAL* Val_Table;
-DEF* Def_Table;
+std::vector<MODEL> Model_Table;
+std::vector<DEF> Def_Table;
 
-int model_size=0;
-int val_size=0;
-int def_size=0;
-int max_constant_num=0;
-int max_depth=0;
+// MODEL* Model_Table;
+// VAL* Val_Table;
+// DEF* Def_Table;
+
+int val_size=3;
+int max_depth=2;
 int gen_exist=0;//0时不生成存在量词
 
 //void generateTerm();
