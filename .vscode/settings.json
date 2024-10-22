@@ -1,6 +1,7 @@
 {
     "C_Cpp.errorSquiggles": "enabled",
     "files.associations": {
+        "*.h": "cpp",
         "vector": "cpp",
         "array": "cpp",
         "atomic": "cpp",
@@ -47,6 +48,32 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "fstream": "cpp",
+        "bitset": "cpp",
+        "ctime": "cpp",
+        "regex": "cpp",
+        "sstream": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "strstream": "cpp",
+        "complex": "cpp",
+        "list": "cpp",
+        "typeindex": "cpp",
+        "variant": "cpp",
+        "mutex": "cpp",
+        "condition_variable": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "cfenv": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "valarray": "cpp"
     }
 }

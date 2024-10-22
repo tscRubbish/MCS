@@ -8,8 +8,8 @@
 "(" {return LP;}
 "=" {return EQ;}
 "\%" {return Annotate;}
-[A-Za-z$_][A-Za-z0-9$_]* {yylval.str=yytext;return STR;} 
-[-+*/\\^<>=`~?@&|!#']+ {yylval.str=yytext;return SP_STR;}
+[A-Za-z\$_][A-Za-z0-9\$_]* {yylval.str=yytext;return STR;} 
+[-\+\*/\\\^<>=`~\?@&\|!#']+ {yylval.str=yytext;return SP_STR;}
 [0-9]+ {yylval.Intval=atoi(yytext);yylval.str=yytext;return INT;}
 "," {return Split;}
 "\." {return END;}
