@@ -171,29 +171,23 @@ int hasRename(TERM term1 ,TERM term2){
 //         }
 //     }
 // }
-bool checkRewrite(TERM term1){
+bool checkRewrite(TERM term){
     if (RewriteRules.size()==0) return false;
     std::ofstream outFile("tmp");
     if (outFile.is_open()) {
             outFile<<"set(paramodulation).\n"<<std::endl;
-            // outFile<<"set(ordered_para).\n"<<std::endl;
-            // outFile<<"clear(back_demod).\n"<<std::endl;
+            outFile<<"set(ordered_para).\n"<<std::endl;
            outFile<<"formulas(assumptions).\n"<<std::endl;
            outFile<<RewriteRules<<std::endl;
            outFile<<"\nend_of_list.\n"<<std::endl;
 
            outFile<<"formulas(goals).\n"<<std::endl;
-           outFile<<printTerm(term1);
-           outFile<<" = ";
-           outFile<<printTerm(term2)<<" .";
+           outFile<<printTerm(term);
+           outFile<<" = x ."<<std::endl;
            outFile<<"\nend_of_list.";
            
            // 调用可执行文件并获取输出
             std::string output = exec("bin/prover9 -f tmp");
-
-            // if (output.find("THEOREM PROVED")!=std::string::npos){
-            //     return 1;
-            // }else return 0;
 
             std::regex pattern("Demod_rewrites=(\\d+)."); // 正则表达式，提取数字
             std::smatch matches;
@@ -329,16 +323,11 @@ void allocatePara(int depth,int nowdepth,int para_idx,int para_num,TERM term){
         }
         // for (int j=0;j<Rule_List.size();j++)
         //     if (matchRewrite(t,Rule_List[j])) return;
-
-        // for (int i=0;i<=depth;i++)
-        //     for (int j=0;j<term_num[i];j++){
-        //         if (checkRewrite(t,Term_Table[i][j])) {return;}
-        //     }
         if (checkRewrite(t)) return ;
         for (int j=0;j<term_num[depth];j++){
             memset(mp,-1,sizeof(mp));
             //if (depth>=2&&hasRename(Term_Table[depth][j],t)) return;
-            if (hasRename(Term_Table[depth][j],t)) {return;}
+            if (hasRename(Term_Table[depth][j],t)) return;
         } 
         //printTerm(t);
         Term_Table[depth].push_back(t);

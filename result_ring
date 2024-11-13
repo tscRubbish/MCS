@@ -1,52 +1,70 @@
 dep = 0  ,has term num = 2
 x
 y
-dep = 1  ,has term num = 4
+dep = 1  ,has term num = 5
++(x,x)
++(x,y)
 *(x,x)
 *(x,y)
-'(x)
 e
-dep = 2  ,has term num = 18
+dep = 2  ,has term num = 32
++(+(x,x),x)
++(+(x,x),y)
++(+(x,y),x)
++(+(x,y),y)
++(*(x,x),x)
++(*(x,x),y)
++(*(x,y),x)
++(*(x,y),y)
++(x,+(x,x))
++(x,+(x,y))
++(x,*(x,x))
++(x,*(x,y))
++(y,+(x,x))
++(y,+(x,y))
++(y,*(x,x))
++(y,*(x,y))
+*(+(x,x),x)
+*(+(x,x),y)
+*(+(x,y),x)
+*(+(x,y),y)
 *(*(x,x),x)
 *(*(x,x),y)
 *(*(x,y),x)
 *(*(x,y),y)
-*('(x),x)
-*('(x),y)
-*(e,x)
+*(x,+(x,x))
+*(x,+(x,y))
 *(x,*(x,x))
 *(x,*(x,y))
-*(x,'(x))
-*(x,e)
+*(y,+(x,x))
+*(y,+(x,y))
 *(y,*(x,x))
 *(y,*(x,y))
-*(y,'(x))
-'(*(x,x))
-'(*(x,y))
-'('(x))
-'(e)
 
 
 Generate Formulas : 
++(+(x,y),x)=+(+(x,x),y)
++(x,+(x,x))=+(+(x,x),x)
++(x,+(x,y))=+(+(x,x),y)
++(x,+(x,y))=+(+(x,y),x)
++(x,*(x,x))=+(*(x,x),x)
++(x,*(x,y))=+(*(x,y),x)
++(y,+(x,x))=+(+(x,x),y)
++(y,+(x,x))=+(+(x,y),x)
++(y,+(x,x))=+(x,+(x,y))
++(y,+(x,y))=+(+(x,y),y)
++(y,*(x,x))=+(*(x,x),y)
++(y,*(x,y))=+(*(x,y),y)
 *(*(x,y),x)=*(*(x,x),y)
-*('(x),x)=e
-*(e,x)=x
+*(x,+(x,x))=*(+(x,x),x)
+*(x,+(x,y))=*(+(x,y),x)
 *(x,*(x,x))=*(*(x,x),x)
 *(x,*(x,y))=*(*(x,x),y)
 *(x,*(x,y))=*(*(x,y),x)
-*(x,'(x))=e
-*(x,'(x))=*('(x),x)
-*(x,e)=x
-*(x,e)=*(e,x)
+*(y,+(x,x))=*(+(x,x),y)
+*(y,+(x,y))=*(+(x,y),y)
 *(y,*(x,x))=*(*(x,x),y)
 *(y,*(x,x))=*(*(x,y),x)
 *(y,*(x,x))=*(x,*(x,y))
 *(y,*(x,y))=*(*(x,y),y)
-*(y,'(x))=*('(x),y)
-'('(x))=x
-'('(x))=*(e,x)
-'('(x))=*(x,e)
-'(e)=e
-'(e)=*('(x),x)
-'(e)=*(x,'(x))
-Has Generated 21 Formulas : 
+Has Generated 24 Formulas : 
