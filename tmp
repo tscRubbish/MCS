@@ -1,0 +1,12 @@
+set(paramodulation).
+
+formulas(assumptions).
+
+f(x,x)=x.
+
+end_of_list.
+
+formulas(goals).
+
+f(y,f(y,x)) = f(y,f(y,f(x,x))) .
+end_of_list.

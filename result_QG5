@@ -1,0 +1,44 @@
+dep = 0  ,has term num = 2
+x
+y
+dep = 1  ,has term num = 2
+f(x,y)
+f(y,x)
+dep = 2  ,has term num = 4
+f(f(x,y),x)
+f(f(x,y),y)
+f(x,f(x,y))
+f(x,f(y,x))
+dep = 3  ,has term num = 17
+f(f(f(x,y),x),x)
+f(f(f(x,y),x),y)
+f(f(f(x,y),y),x)
+f(f(f(x,y),y),y)
+f(f(x,f(x,y)),x)
+f(f(x,f(x,y)),y)
+f(f(x,f(y,x)),x)
+f(f(x,f(y,x)),y)
+f(f(x,y),f(y,x))
+f(x,f(f(x,y),x))
+f(x,f(f(x,y),y))
+f(x,f(x,f(x,y)))
+f(x,f(x,f(y,x)))
+f(y,f(f(x,y),x))
+f(y,f(f(x,y),y))
+f(y,f(x,f(x,y)))
+f(y,f(x,f(y,x)))
+
+
+Generate Formulas : 
+f(x,f(y,x))=f(f(x,y),x)
+f(f(f(x,y),x),x)=y
+f(f(x,f(y,x)),x)=y
+f(f(x,f(y,x)),x)=f(f(f(x,y),x),x)
+f(f(x,f(y,x)),y)=f(f(f(x,y),x),y)
+f(x,f(f(x,y),x))=f(f(x,f(x,y)),x)
+f(x,f(x,f(y,x)))=f(f(x,f(x,y)),x)
+f(x,f(x,f(y,x)))=f(x,f(f(x,y),x))
+f(y,f(f(x,y),y))=x
+f(y,f(x,f(x,y)))=f(f(x,f(x,y)),y)
+f(y,f(x,f(y,x)))=f(y,f(f(x,y),x))
+Has Generated 11 Formulas : 

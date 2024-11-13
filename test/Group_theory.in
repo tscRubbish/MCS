@@ -1,0 +1,15 @@
+assign(start_size, 8).
+assign(end_size, 8).
+assign(increment, 1).
+assign(max_seconds_per, 10).
+assign(max_models, 12).
+
+formulas(assumptions).
+x * y = y * x .
+x * e = x .
+x*(y*z) = (x*y)*z.
+e * x = x.
+x' * x = e .
+x * x' = e.
+
+end_of_list.

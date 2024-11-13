@@ -13,6 +13,10 @@
 #include <regex>
 #include <boost/program_options.hpp>
 #include "json.hpp"
+#include <fstream> 
+#include <cstdio>
+#include <memory>
+#include <array>
 
 using json = nlohmann::json;
 
@@ -28,6 +32,7 @@ int para_idx_tmp[MAX_N_PARA];
 int mp[MAX_N_DEF];
 
 bool createDef;
+std::string PrvoerPath = "./bin/prover9 " ;
 
 //void initNewModel();
 int getDefByName(const char* s);
@@ -108,23 +113,39 @@ void printTermFile(TERM term,char * path){
     fprintf(fp,")");
     fclose(fp);
 }
-void printTerm(TERM term){
+std::string printTerm(TERM term){
     if (term->isfun==0){
-        printf("$%c", 'a'+term->idx);
-        return;
+        return Val_List[term->idx];
     }
     if (term->para_size==0){
-        printf("%s", Def_Table[term->idx].c_str());
-        return;
+        return Def_Table[term->idx];
     }
-    printf("%s(", Def_Table[term->idx].c_str());
+    std::string str(Def_Table[term->idx]);
+    str+="(";
     for (int i=0;i<term->para_size;i++){
-        if (term->para_list[i]==nullptr) return;
-        if (i>=1) printf(",");
-        printTerm(term->para_list[i]);
+        //if (term->para_list[i]==nullptr) return;
+        if (i>=1) str+=",";
+        str+=printTerm(term->para_list[i]);
     }
-    printf(")");
+    str+=")";
+    return str;
 }
+std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    
+    return result;
+}
+
 int hasRename(TERM term1 ,TERM term2){
     if (term1->isfun!=term2->isfun) return 0;
     if (term1->isfun==0) {
@@ -150,6 +171,48 @@ int hasRename(TERM term1 ,TERM term2){
 //         }
 //     }
 // }
+bool checkRewrite(TERM term1){
+    if (RewriteRules.size()==0) return false;
+    std::ofstream outFile("tmp");
+    if (outFile.is_open()) {
+            outFile<<"set(paramodulation).\n"<<std::endl;
+            // outFile<<"set(ordered_para).\n"<<std::endl;
+            // outFile<<"clear(back_demod).\n"<<std::endl;
+           outFile<<"formulas(assumptions).\n"<<std::endl;
+           outFile<<RewriteRules<<std::endl;
+           outFile<<"\nend_of_list.\n"<<std::endl;
+
+           outFile<<"formulas(goals).\n"<<std::endl;
+           outFile<<printTerm(term1);
+           outFile<<" = ";
+           outFile<<printTerm(term2)<<" .";
+           outFile<<"\nend_of_list.";
+           
+           // 调用可执行文件并获取输出
+            std::string output = exec("bin/prover9 -f tmp");
+
+            // if (output.find("THEOREM PROVED")!=std::string::npos){
+            //     return 1;
+            // }else return 0;
+
+            std::regex pattern("Demod_rewrites=(\\d+)."); // 正则表达式，提取数字
+            std::smatch matches;
+            if (std::regex_search(output, matches, pattern) && matches.size() > 1) {
+                // matches[1] 包含提取的数字
+                std::string numberStr = matches[1]; // 提取的数字字符串
+                int number = std::stoi(numberStr);  // 转换为整数
+                std::cout << "Extracted number: " << number << std::endl;
+                return number>0;
+            } else {
+                return 0;
+            }
+
+    } else {
+            std::cerr << "Unable to create file." << std::endl;
+            return 0;
+    }
+    //std::remove("tmp");
+}
 
 int calculateByModel(TERM term,int *para_val_list,int model_id){
     for (int i=0;i<Model_Table[model_id]->Assign_Table.size();i++){
@@ -209,6 +272,7 @@ int checkByModel(TERM term1,TERM term2){
         //printf("model_id = %d\n",i);
         res += enumerateVal(0,val_list,term1,term2,i);
     }
+    //std::cout<<res<<std::endl;
     if (res==cur_model) {
         return 1;
     }
@@ -225,6 +289,7 @@ void generateFormula(){
                     int flag = checkByModel(Term_Table[i1][j1],Term_Table[i2][j2]);
                     //if (i1<=1&&i2<=1)
                     //printf("(%d,%d) (%d,%d) flag=%d\n",i1,j1,i2,j2,flag);
+                    //std::cout<<printTerm(Term_Table[i1][j1])<<' '<<printTerm(Term_Table[i2][j2])<<' '<<flag<<std::endl;
                     if (flag){
                         //FORMULA f=(FORMULA)malloc(sizeof(struct Formula));
                         FORMULA f = new Formula();
@@ -264,9 +329,16 @@ void allocatePara(int depth,int nowdepth,int para_idx,int para_num,TERM term){
         }
         // for (int j=0;j<Rule_List.size();j++)
         //     if (matchRewrite(t,Rule_List[j])) return;
+
+        // for (int i=0;i<=depth;i++)
+        //     for (int j=0;j<term_num[i];j++){
+        //         if (checkRewrite(t,Term_Table[i][j])) {return;}
+        //     }
+        if (checkRewrite(t)) return ;
         for (int j=0;j<term_num[depth];j++){
             memset(mp,-1,sizeof(mp));
-            if (hasRename(Term_Table[depth][j],t)) return;
+            //if (depth>=2&&hasRename(Term_Table[depth][j],t)) return;
+            if (hasRename(Term_Table[depth][j],t)) {return;}
         } 
         //printTerm(t);
         Term_Table[depth].push_back(t);
@@ -304,22 +376,22 @@ void generateTerm(){
                 Term_Table[i].push_back(term);
                 term_num[i]++;
             }
-            for (int j=0;j<cur_def;j++){
-                if (Def_para_size[j]==0){
-                    printf("Constant : id = %d , cname = %s\n",j,Def_Table[j].c_str());
-                    //TERM term=(TERM)malloc(sizeof(struct Term));
-                    TERM term = new Term();
-                    term->isfun=1;
-                    term->depth=0;
-                    term->para_size=0;
-                    term->idx=j;
-                    Term_Table[i].push_back(term);
-                    term_num[i]++;
-                }
-            }
+            // for (int j=0;j<cur_def;j++){
+            //     if (Def_para_size[j]==0){
+            //         printf("Constant : id = %d , cname = %s\n",j,Def_Table[j].c_str());
+            //         //TERM term=(TERM)malloc(sizeof(struct Term));
+            //         TERM term = new Term();
+            //         term->isfun=1;
+            //         term->depth=0;
+            //         term->para_size=0;
+            //         term->idx=j;
+            //         Term_Table[i].push_back(term);
+            //         term_num[i]++;
+            //     }
+            // }
         }else {
             for (int j=0;j<cur_def;j++){
-                if (Def_para_size[j]>0){
+                if (Def_para_size[j]>=0){
                     //TERM term=(TERM)malloc(sizeof(struct Term));
                     TERM term = new Term();
                     term->isfun=1;
@@ -348,7 +420,7 @@ void generateTerm(){
              fclose(fp);
         }
     }
-    fp = fopen("result.txt","a");
+    fp = fopen(outFile,"a");
     fprintf(fp,"\n");
     fclose(fp);
 }
@@ -490,56 +562,56 @@ void readModelFromFile(char *path){
 }
 
 
-// 递归解析参数
-Parameter parseParameter(const nlohmann::json& item) {
-    if (item.is_string()) {
-        return item.get<std::string>();
-    } else if (item.is_object()){
-        RewriteRule rule;
-        rule.fun_name = item["fun_name"];
-        //rule.para = item["para"].get<std::vector<Parameter>>();
-        // 解析 para 字段
-        for (const auto& param : item.at("para")) {
-            rule.para.push_back(parseParameter(param));
-        }
-        return rule;
-    }else throw std::invalid_argument("Invalid parameter type");
-}
+// // 递归解析参数
+// Parameter parseParameter(const nlohmann::json& item) {
+//     if (item.is_string()) {
+//         return item.get<std::string>();
+//     } else if (item.is_object()){
+//         RewriteRule rule;
+//         rule.fun_name = item["fun_name"];
+//         //rule.para = item["para"].get<std::vector<Parameter>>();
+//         // 解析 para 字段
+//         for (const auto& param : item.at("para")) {
+//             rule.para.push_back(parseParameter(param));
+//         }
+//         return rule;
+//     }else throw std::invalid_argument("Invalid parameter type");
+// }
 
-// 解析 JSON
-std::vector<RewriteRule> parseJson(const std::string& jsonData) {
-    nlohmann::json jsonArray = nlohmann::json::parse(jsonData);
-    std::vector<RewriteRule> rewriteRules;
+// // 解析 JSON
+// std::vector<RewriteRule> parseJson(const std::string& jsonData) {
+//     nlohmann::json jsonArray = nlohmann::json::parse(jsonData);
+//     std::vector<RewriteRule> rewriteRules;
 
-    for (const auto& item : jsonArray) {
-        RewriteRule rule;
-        rule.fun_name = item["fun_name"];
-        rule.res = item.at("res").get<std::string>();
+//     for (const auto& item : jsonArray) {
+//         RewriteRule rule;
+//         rule.fun_name = item["fun_name"];
+//         rule.res = item.at("res").get<std::string>();
         
-        // 解析 para 字段
-        for (const auto& param : item["para"]) {
-            rule.para.push_back(parseParameter(param));
-        }
+//         // 解析 para 字段
+//         for (const auto& param : item["para"]) {
+//             rule.para.push_back(parseParameter(param));
+//         }
         
-       rewriteRules.push_back(rule);
-    }
+//        rewriteRules.push_back(rule);
+//     }
     
-    return rewriteRules;
-}
+//     return rewriteRules;
+// }
 
-// 输出重写规则
-void printRewriteRule(const RewriteRule& rule) {
-    std::cout << "Function Name: " << rule.fun_name << "\nParameters: ";
-    for (const auto& param : rule.para) {
-        if (std::holds_alternative<std::string>(param)) {
-            std::cout << std::get<std::string>(param) << " ";
-        } else {
-            printRewriteRule(std::get<RewriteRule>(param)); // 递归输出
-        }
-    }
-    std::cout << "\nRewrite res: " << rule.res;
-    std::cout << std::endl;
-}
+// // 输出重写规则
+// void printRewriteRule(const RewriteRule& rule) {
+//     std::cout << "Function Name: " << rule.fun_name << "\nParameters: ";
+//     for (const auto& param : rule.para) {
+//         if (std::holds_alternative<std::string>(param)) {
+//             std::cout << std::get<std::string>(param) << " ";
+//         } else {
+//             printRewriteRule(std::get<RewriteRule>(param)); // 递归输出
+//         }
+//     }
+//     std::cout << "\nRewrite res: " << rule.res;
+//     std::cout << std::endl;
+// }
 
 int main(int argc, char **argv) {
     namespace po = boost::program_options;
@@ -599,15 +671,15 @@ int main(int argc, char **argv) {
         std::cout << std::endl;
     }
 
+    RewriteRules = "";
     if (vm.count("rewrite")) {
         std::cout << "rewrite : " <<vm["rewrite"].as<std::string>()<< std::endl;
-        //max_depth=vm["rewrite"].as<std::string>();
-        //todo:get rewrite rule
-        Rule_List = parseJson(vm["rewrite"].as<std::string>());
-        // 输出结果
-        for (const auto& rule : Rule_List) {
-            printRewriteRule(rule);
-        }
+        // Rule_List = parseJson(vm["rewrite"].as<std::string>());
+        // // 输出结果
+        // for (const auto& rule : Rule_List) {
+        //     printRewriteRule(rule);
+        // }
+        RewriteRules = vm["rewrite"].as<std::string>();
     }
 
 

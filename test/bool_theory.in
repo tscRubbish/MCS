@@ -1,0 +1,26 @@
+assign(start_size, 8).
+assign(max_models, 3).
+
+formulas(assumptions).
+
+  x * y = y * x.
+  x + y = y + x.
+
+  (x * y) * z = x * (y * z).
+  (x + y) + z = x + (y + z).
+
+  x * (y + z) = (x * y) + (x * z).
+  x + (y * z) = (x + y) * (x + z).
+
+  x * x = x.
+  x + x = x.
+
+  x * I = x.
+  x + O = x.
+
+  x * O = O.
+  x + I = I.
+
+  x * x' = O.
+  x + x' = I.
+end_of_list.

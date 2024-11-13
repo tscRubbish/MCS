@@ -1,0 +1,15 @@
+assign(start_size, 6).
+set(integer_ring).
+assign(max_models, 8).
+
+
+formulas(assumptions).
+  x + y = y + x.
+  (x * y) * z = x * (y * z).
+  x * (y + z) = (x * y) + (x * z).
+  (x + y) * z = (x * z) + (y * z).
+  x + e = x.
+  e + x = x.
+  e * x = e.
+  x * e = e.
+end_of_list.

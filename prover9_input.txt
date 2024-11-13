@@ -1,0 +1,12 @@
+formulas(assumptions).
+
+ f(x, x) = x.
+
+end_of_list.
+
+formulas(goals).
+
+  f(y,f(x,x)) = z.
+
+end_of_list.
+

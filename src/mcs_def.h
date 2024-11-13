@@ -45,15 +45,15 @@ typedef struct Formula{
     struct Term *term2;
 }*FORMULA;
 
-struct RewriteRule; // 前向声明
+// struct RewriteRule; // 前向声明
 
-using Parameter = std::variant<std::string, RewriteRule>;
+// using Parameter = std::variant<std::string, RewriteRule>;
 
-struct RewriteRule {
-    std::string fun_name;
-    std::vector<Parameter> para;
-    std::string res;
-};
+// struct RewriteRule {
+//     std::string fun_name;
+//     std::vector<Parameter> para;
+//     std::string res;
+// };
 
 
 std::vector<TERM> *Term_Table;
@@ -65,7 +65,8 @@ std::vector<std::string> Def_Table;
 std::vector<int> Def_para_size;
 
 std::vector<std::string> Val_List;
-std::vector<RewriteRule> Rule_List;
+//std::vector<RewriteRule> Rule_List;
+std::string RewriteRules;
 
 int val_size=2;
 int max_depth=2;

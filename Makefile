@@ -1,4 +1,2 @@
-mcs: mcs.l mcs.y
-	bison -d mcs.y
-	flex mcs.l
-	g++ -g -fsanitize=address -o mcs mcs.tab.c lex.yy.c -lfl
+mcs: src/main.cpp
+	g++ -o mcs src/main.cpp -lboost_program_options
